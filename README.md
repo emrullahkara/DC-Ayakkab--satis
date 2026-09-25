@@ -3,7 +3,7 @@
 Ayakkabı mağazaları için **tek ekrandan** çok mağazalı satış, stok, müşteri, kasa ve personel yönetimi.
 Tek mağazadan onlarca şubeli zincire kadar; kasada PC, mağazada tablet, patronun cebinde telefon.
 
-> Kurulum için: [docs/KURULUM.md](docs/KURULUM.md) · Kullanım kılavuzu: [docs/KULLANIM.md](docs/KULLANIM.md) · Satış/lisans yönetimi: [docs/SATIS-VE-LISANS.md](docs/SATIS-VE-LISANS.md)
+> Sunum: [docs/SUNUM.md](docs/SUNUM.md) · Kurulum için: [docs/KURULUM.md](docs/KURULUM.md) · Kullanım kılavuzu: [docs/KULLANIM.md](docs/KULLANIM.md) · Satış/lisans yönetimi: [docs/SATIS-VE-LISANS.md](docs/SATIS-VE-LISANS.md)
 
 ## Neleri çözer?
 
