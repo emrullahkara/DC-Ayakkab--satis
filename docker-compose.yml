@@ -1,0 +1,37 @@
+# Tek komutla kurulum:  docker compose up -d
+# Ayarlar .env dosyasından okunur (bkz. .env.example)
+services:
+  app:
+    build: .
+    image: dc-ayakkabi-satis:latest
+    restart: unless-stopped
+    environment:
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:?ADMIN_PASSWORD .env dosyasinda tanimlanmali}
+      - JWT_SECRET=${JWT_SECRET:-}
+      - DEMO_DATA=${DEMO_DATA:-0}
+      - COOKIE_SECURE=${COOKIE_SECURE:-0}
+      - BACKUP_KEEP=${BACKUP_KEEP:-14}
+    volumes:
+      - dc-data:/data
+    ports:
+      - "${PORT:-3000}:3000"
+
+  # HTTPS için (alan adınız varsa): DOMAIN=magaza.firmaniz.com yazıp `docker compose --profile https up -d`
+  caddy:
+    image: caddy:2-alpine
+    profiles: ["https"]
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      - DOMAIN=${DOMAIN:?DOMAIN .env dosyasinda tanimlanmali}
+    command: caddy reverse-proxy --from ${DOMAIN} --to app:3000
+    volumes:
+      - caddy-data:/data
+    depends_on:
+      - app
+
+volumes:
+  dc-data:
+  caddy-data:
