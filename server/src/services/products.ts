@@ -207,20 +207,20 @@ export function listProducts(user: AuthUser, f: ProductFilter) {
   if (f.gender) (where.push('p.gender = ?'), params.push(f.gender));
   if (f.active !== 'all') where.push(`p.active = ${f.active === '0' ? 0 : 1}`);
   const stores = inList(f.storeIds);
-  let having = '';
-  if (f.stock === 'in') having = 'HAVING stock_qty > 0';
-  if (f.stock === 'out') having = 'HAVING stock_qty <= 0';
-  if (f.stock === 'low') having = 'HAVING stock_qty <= p.min_stock * variant_count';
+  let outer = '';
+  if (f.stock === 'in') outer = 'WHERE stock_qty > 0';
+  if (f.stock === 'out') outer = 'WHERE stock_qty <= 0';
+  if (f.stock === 'low') outer = 'WHERE stock_qty <= min_stock * variant_count';
   const rows = all<Record<string, unknown>>(
-    `SELECT p.id, p.code, p.name, p.gender, p.season, p.material, p.sale_price, p.cost_price, p.vat_rate, p.active, p.image_url, p.min_stock,
+    `SELECT * FROM (SELECT p.id, p.code, p.name, p.gender, p.season, p.material, p.sale_price, p.cost_price, p.vat_rate, p.active, p.image_url, p.min_stock,
             p.marketplace_sync, b.name AS brand, c.name AS category, s.name AS supplier,
             (SELECT COUNT(*) FROM variants v WHERE v.product_id = p.id AND v.active = 1) AS variant_count,
             (SELECT GROUP_CONCAT(DISTINCT v.color) FROM variants v WHERE v.product_id = p.id AND v.active = 1) AS colors,
             COALESCE((SELECT SUM(st.qty) FROM stock st JOIN variants v ON v.id = st.variant_id WHERE v.product_id = p.id AND st.store_id IN (${stores})),0) AS stock_qty
        FROM products p LEFT JOIN brands b ON b.id = p.brand_id LEFT JOIN categories c ON c.id = p.category_id
        LEFT JOIN suppliers s ON s.id = p.supplier_id
-      WHERE ${where.join(' AND ')} ${having}
-      ORDER BY p.id DESC LIMIT ? OFFSET ?`,
+      WHERE ${where.join(' AND ')}) ${outer}
+      ORDER BY id DESC LIMIT ? OFFSET ?`,
     ...params, Math.min(f.limit ?? 100, 2000), f.offset ?? 0,
   );
   if (!hasPerm(user, 'costs.view')) rows.forEach((r) => delete r.cost_price);

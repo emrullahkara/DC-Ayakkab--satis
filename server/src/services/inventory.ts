@@ -32,15 +32,17 @@ export function stockList(
   const stores = inList(f.storeIds);
   const having: string[] = [];
   if (f.onlyPositive) having.push('total > 0');
-  if (f.low) having.push('total <= p.min_stock');
+  if (f.low) having.push('total <= min_stock');
   const rows = all<{ id: number; total: number; cost_price?: number }>(
-    `SELECT v.id, v.color, v.size, v.barcode, p.id AS product_id, p.code, p.name, p.min_stock, p.cost_price,
+    `SELECT * FROM (
+      SELECT v.id, v.color, v.size, v.barcode, p.id AS product_id, p.code, p.name, p.min_stock, p.cost_price,
             COALESCE(v.sale_price, p.sale_price) AS price, b.name AS brand, c.name AS category,
             COALESCE((SELECT SUM(qty) FROM stock WHERE variant_id = v.id AND store_id IN (${stores})),0) AS total
        FROM variants v JOIN products p ON p.id = v.product_id
        LEFT JOIN brands b ON b.id = p.brand_id LEFT JOIN categories c ON c.id = p.category_id
-      WHERE ${where.join(' AND ')} ${having.length ? 'HAVING ' + having.join(' AND ') : ''}
-      ORDER BY p.code, v.color, CAST(v.size AS REAL), v.size LIMIT ?`,
+      WHERE ${where.join(' AND ')}
+    ) ${having.length ? 'WHERE ' + having.join(' AND ') : ''}
+      ORDER BY code, color, CAST(size AS REAL), size LIMIT ?`,
     ...params, Math.min(f.limit ?? 500, 5000),
   );
   if (!rows.length) return [];
